@@ -14,9 +14,13 @@ module.exports = function solveSudoku(matrix) {
   let solutionTemp = [new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers), new Set(numbers)]
   let solutionTemp2 = []
   let wrong = [[], [], [], [], [], [], [], [], []]
-  let work = false
+  let work1 = false
+  let work2 = false
+  let work3 = false
+  let work4 = false
   let countX = 0
   let countY = 0
+  let lonely = 0
 
 
   function isEqual(a, b) {
@@ -44,7 +48,7 @@ module.exports = function solveSudoku(matrix) {
       }  
     }
 
-    while(!work) {
+    while(!work1 && !work2 && !work3 && !work4) {
 
     for (let i = 0; i < 9; i++) {
       for (let j = 0; j < 9; j++) {
@@ -107,11 +111,16 @@ module.exports = function solveSudoku(matrix) {
         if (arrCandidate[i][j] !== null && arrCandidate[i][j].size === 1) {
           matrix1[i][j] = Array.from(arrCandidate[i][j].values())[0]
           arrCandidate[i][j] = null
-          work = false
+          countY = 0
+              countX = 0
+              work1 = false
+              work2 = false
+              work3 = false
+              work4 = false
           break checkLoop
         }
       } 
-      work = true
+      work1 = true
     }
   
 
@@ -127,13 +136,18 @@ module.exports = function solveSudoku(matrix) {
                 }
               }
               countX++
-              work = false
+              countY = 0
+              countX = 0
+              work1 = false
+              work2 = false
+              work3 = false
+              work4 = false
               break checkLoop2
             }
           }
         }
       }
-      work = true
+     work2 = true
     } 
 
     checkLoop3: for (let j = 0; j < 9; j++) {
@@ -149,22 +163,67 @@ module.exports = function solveSudoku(matrix) {
                 }
               }
               countY++
-              work = false
+              countY = 0
+              countX = 0
+              work1 = false
+              work2 = false
+              work3 = false
+              work4 = false
               break checkLoop3   
             }
           }
         }
       }
-      work = true
+      work3 = true  
     } 
- 
-      
+    
+    checkLoop4: for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {    
+        //if(i === 3 && j === 3) console.log('33');
+        if (arrCandidate[i][j] !== null) {
+          //console.log(`arrCandidate[${i}][${j}] = ${arrCandidate[i][j]}`);
+          for (let k = 0; k < arrCandidate[i][j].size; k++) {
+           // console.log(arrCandidate[i][j].size)
+            for (let v = 0; v < 9; v++) {
+              if (arrCandidate[i][v] !== null && arrCandidate[i][v].has(Array.from(arrCandidate[i][j].values())[k])) lonely++
+            }
+            if (lonely === 1) {
+              matrix1[i][j] = Array.from(arrCandidate[i][j].values())[k]
+              arrCandidate[i][j] = null
+              lonely = 0
+              countY = 0
+              countX = 0
+              work1 = false
+              work2 = false
+              work3 = false
+              work4 = false
+              break checkLoop4  
+            } else lonely = 0
+            for (let v = 0; v < 9; v++) {
+              if (arrCandidate[v][j] !== null && arrCandidate[v][j].has(Array.from(arrCandidate[i][j].values())[k])) lonely++
+            }
+            if (lonely === 1) {
+              matrix1[i][j] = Array.from(arrCandidate[i][j].values())[k]
+              arrCandidate[i][j] = null
+              lonely = 0
+              work4 = false
+              countY = 0
+              countX = 0
+              work1 = false
+              work2 = false
+              work3 = false
+              break checkLoop4  
+            } else lonely = 0
+          }
+        }
+      }
+      work4 = true
+    }
       
   }
-    
-//   console.log(isEqual(arrCandidate[8][4], arrCandidate[8][8]))
-// console.log(arrCandidate);
-// console.log(matrix1);
+
+ //console.log(arrCandidate);
+ //console.log(matrix1);
  
 
   const matrixCopy = (mtrx) => {
@@ -192,15 +251,15 @@ module.exports = function solveSudoku(matrix) {
     return null
   }
   
-// console.log(arrCandidate);
-// console.log(solutionTemp);
+//console.log(arrCandidate);
+//console.log(solutionTemp);
  
 // CHECK SUDOKU
 
   while (!found) {
     
    // if (stop % 10 === 0) console.log(stop);
-    if (stop === 1000000) {
+    if (stop === 200000) {
       found = true    
       break
     }
@@ -213,15 +272,15 @@ module.exports = function solveSudoku(matrix) {
       solutionTemp2[i] = new Set(solutionTemp[i].values())
     }
 
-    for (let i = 0; i < 9; i++) {
-      if (error === 1) break
+    stopWord: for (let i = 0; i < 9; i++) {
+      // if (error === 1) break
       for (let j = 0; j < 9; j++) {
         if (matrix2[i][j] === 0) {
 
           timeRandNum2 = timeRand(i, j)
           if (timeRandNum2 === null) {
             error = 1
-            break
+            break stopWord
           } else matrix2[i][j] = timeRandNum2 
 
          solutionTemp2[i].delete(matrix2[i][j])
@@ -229,11 +288,11 @@ module.exports = function solveSudoku(matrix) {
           for (let k = 0; k < 9; k++) {
             if (matrix2[i][j] === matrix2[i][k] && j !== k) {
               error = 1
-              break
+              break stopWord
             } 
             if (matrix2[i][j] === matrix2[k][j] && i !== k) {
               error = 1
-              break
+              break stopWord
             } 
           }
 
